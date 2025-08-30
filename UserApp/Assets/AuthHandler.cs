@@ -10,7 +10,7 @@ public class AuthHandler : MonoBehaviour
     public string Username { get; set; }
 
 
-    private string apiUrl = "https://sid-restapi.onrender.com";                   //Crear el servidor y cambiar la URL
+    private string apiUrl = "https://sid-restapi.onrender.com";                   
 
 
     private UIDocument uiDocument;
