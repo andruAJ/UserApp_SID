@@ -18,6 +18,7 @@ public class AuthHandler : MonoBehaviour
     private Button loginButton;
     private TextField usernameField;
     private TextField passwordField;
+    private VisualElement scoreTable;
 
 
     void Start()
@@ -27,6 +28,7 @@ public class AuthHandler : MonoBehaviour
         loginButton = loginCard.Q<Button>("LogIn_Button");
         usernameField = loginCard.Q<TextField>("Username_TextField");
         passwordField = loginCard.Q<TextField>("Password_TextField");
+        scoreTable = uiDocument.rootVisualElement.Q<VisualElement>("ScoreTable");
         Token = PlayerPrefs.GetString("token", "");
         Username = PlayerPrefs.GetString("username", "");
 
@@ -96,13 +98,19 @@ public class AuthHandler : MonoBehaviour
 
         if (www.result == UnityWebRequest.Result.Success)
         {
-            Debug.Log("Login successful");
+            Debug.Log("Login (score) successful");
             AuthResponse response = JsonUtility.FromJson<AuthResponse>(www.downloadHandler.text);
 
-            Debug.Log("Username: " + response.usuario.username);
+            SetUIForUserLogged();
+
+            Debug.Log("Username: " + response.usuario.username);        
             Debug.Log("Score: " + response.usuario.data.score);
 
-            SetUIForUserLogged();
+            scoreTable.Q<Label>("User1NameText").text = response.usuario.username;
+            scoreTable.Q<Label>("User1ScoreText").text = response.usuario.data.score.ToString();
+            //Poner los datos del otro usuario si el profe lo pone
+
+
         }
         else
         {
@@ -111,7 +119,7 @@ public class AuthHandler : MonoBehaviour
     }
     public void SetUIForUserLogged()
     {
-        if (loginCard != null) { loginCard.style.display = DisplayStyle.None; }
+        if (loginCard != null) { loginCard.style.display = DisplayStyle.None; scoreTable.style.display = DisplayStyle.Flex; }
     }
 }
 class AuthData
