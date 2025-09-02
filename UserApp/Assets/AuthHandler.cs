@@ -12,13 +12,16 @@ public class AuthHandler : MonoBehaviour
 
     private string apiUrl = "https://sid-restapi.onrender.com";                   
 
-
     private UIDocument uiDocument;
     private VisualElement loginCard;
     private Button loginButton;
     private TextField usernameField;
     private TextField passwordField;
     private VisualElement scoreTable;
+    private VisualElement signupCard;
+    private Button signupButton;
+    private TextField signupUsernameField;
+    private TextField signupPasswordField;
 
 
     void Start()
@@ -29,10 +32,16 @@ public class AuthHandler : MonoBehaviour
         usernameField = loginCard.Q<TextField>("Username_TextField");
         passwordField = loginCard.Q<TextField>("Password_TextField");
         scoreTable = uiDocument.rootVisualElement.Q<VisualElement>("ScoreTable");
+        signupCard = uiDocument.rootVisualElement.Q<VisualElement>("SignUp_Card");
+        signupButton = signupCard.Q<Button>("SignUp_Button");
+        signupUsernameField = signupCard.Q<TextField>("Username_Register");
+        signupPasswordField = signupCard.Q<TextField>("Password_Register");
+
         Token = PlayerPrefs.GetString("token", "");
         Username = PlayerPrefs.GetString("username", "");
 
         loginButton.RegisterCallback<ClickEvent>(ev => Login());
+        signupButton.RegisterCallback<ClickEvent>(ev => SignIn());
 
         if (!string.IsNullOrEmpty(Token) && !string.IsNullOrEmpty(Username))
         {
@@ -43,6 +52,24 @@ public class AuthHandler : MonoBehaviour
             Debug.Log("No token found, please log in.");
         }
     }
+
+    public void SignIn()
+    {
+        Debug.Log("Login button clicked");
+        if (uiDocument)
+        {
+            string username = usernameField.text;
+            string password = passwordField.text;
+            StartCoroutine(LoginCoroutine(username, password));
+        }
+        else { Debug.LogError("UIDocument not found!"); }
+    }
+
+
+
+
+
+    ///////////////////////////////////////////////////////Métodos para LogIn////////////////////////////////////////////////////////
     public void Login()
     {
         Debug.Log("Login button clicked");
