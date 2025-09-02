@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -12,13 +13,21 @@ public class AuthHandler : MonoBehaviour
 
     private string apiUrl = "https://sid-restapi.onrender.com";                   
 
-
     private UIDocument uiDocument;
     private VisualElement loginCard;
     private Button loginButton;
     private TextField usernameField;
     private TextField passwordField;
+    private Button registrarse;                  //este es el botón para cambiar de carta
+
     private VisualElement scoreTable;
+
+    private VisualElement signupCard;
+    private Button signupButton;
+    private TextField signupUsernameField;
+    private TextField signupPasswordField;
+    private Button iniciarSesion;               //este es el botón para cambiar de carta
+
 
 
     void Start()
@@ -29,10 +38,20 @@ public class AuthHandler : MonoBehaviour
         usernameField = loginCard.Q<TextField>("Username_TextField");
         passwordField = loginCard.Q<TextField>("Password_TextField");
         scoreTable = uiDocument.rootVisualElement.Q<VisualElement>("ScoreTable");
+        signupCard = uiDocument.rootVisualElement.Q<VisualElement>("SignUp_Card");
+        signupButton = signupCard.Q<Button>("SignUp_Button");
+        signupUsernameField = signupCard.Q<TextField>("Username_Register");
+        signupPasswordField = signupCard.Q<TextField>("Password_Register");
+        registrarse = loginCard.Q<Button>("Registrarse_Button");
+        iniciarSesion = signupCard.Q<Button>("TienesCuenta_Button");
+
         Token = PlayerPrefs.GetString("token", "");
         Username = PlayerPrefs.GetString("username", "");
 
         loginButton.RegisterCallback<ClickEvent>(ev => Login());
+        signupButton.RegisterCallback<ClickEvent>(ev => SignIn());
+        registrarse.RegisterCallback<ClickEvent>(ev => { loginCard.style.display = DisplayStyle.None; signupCard.style.display = DisplayStyle.Flex; });
+        iniciarSesion.RegisterCallback<ClickEvent>(ev => { signupCard.style.display = DisplayStyle.None; loginCard.style.display = DisplayStyle.Flex; });
 
         if (!string.IsNullOrEmpty(Token) && !string.IsNullOrEmpty(Username))
         {
@@ -43,6 +62,47 @@ public class AuthHandler : MonoBehaviour
             Debug.Log("No token found, please log in.");
         }
     }
+
+    ///////////////////////////////////////////////////////Métodos para SignIn////////////////////////////////////////////////////////
+
+    public void SignIn()
+    {
+        Debug.Log("SignIn button clicked");
+        if (uiDocument)
+        {
+            string username = signupUsernameField.text;
+            string password = signupPasswordField.text;
+            StartCoroutine(SignInCoroutine(username, password));
+        }
+        else { Debug.LogError("UIDocument not found!"); }
+    }
+
+    private IEnumerator SignInCoroutine(string username, string password)
+    {
+
+        string jsonData = JsonUtility.ToJson(new AuthData { username = username, password = password });
+
+        string url = apiUrl + "/api/usuarios";
+
+        UnityWebRequest www = UnityWebRequest.Post(url, jsonData, "application/json");
+
+        yield return www.SendWebRequest();
+
+        if (www.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("SignIn  successful");
+
+            //aquí ya creo que cree el usuario
+
+            signupCard.style.display = DisplayStyle.None; loginCard.style.display = DisplayStyle.Flex;
+        }
+        else
+        {
+            Debug.LogError("SignIn failed: " + www.error);
+        }
+    }
+
+    ///////////////////////////////////////////////////////Métodos para LogIn////////////////////////////////////////////////////////
     public void Login()
     {
         Debug.Log("Login button clicked");
@@ -86,6 +146,8 @@ public class AuthHandler : MonoBehaviour
         }
     }
 
+    ///////////////////////////////////////////////////////Métodos para autenticar////////////////////////////////////////////////////////
+
     private IEnumerator GetProfile()
     {
         Debug.Log("Fetching profile for user: " + Username);
@@ -104,23 +166,73 @@ public class AuthHandler : MonoBehaviour
             SetUIForUserLogged();
 
             Debug.Log("Username: " + response.usuario.username);        
-            Debug.Log("Score: " + response.usuario.data.score);
-
-            scoreTable.Q<Label>("User1NameText").text = response.usuario.username;
-            scoreTable.Q<Label>("User1ScoreText").text = response.usuario.data.score.ToString();
-            //Poner los datos del otro usuario si el profe lo pone
-
-
+            Debug.Log("Score: " + response.usuario.data.score);     
         }
         else
         {
             Debug.LogError("Login failed: " + www.error);
         }
     }
-    public void SetUIForUserLogged()
+
+    ///////////////////////////////////////////////////////Métodos para acttualizar la data del score////////////////////////////////////////////////////////
+
+    private IEnumerator UpdateData(int newScore)
+    {
+        return null;
+    }
+
+
+    ///////////////////////////////////////////////////////Métodos para mostrar la tabla de puntuaciones////////////////////////////////////////////////////////
+
+    private IEnumerator SetUIForUserLogged()
     {
         if (loginCard != null) { loginCard.style.display = DisplayStyle.None; scoreTable.style.display = DisplayStyle.Flex; }
+
+        string url = apiUrl + "/api/usuarios/";            //hay que agregar aquí el endpoint para obtener la tabla de puntuaciones (los mejores puntajes)
+        UnityWebRequest www = UnityWebRequest.Get(url);
+        www.SetRequestHeader("x-token", Token);
+        yield return www.SendWebRequest();
+
+        if (www.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("Score table fetch successful");
+            //Aquí debería parsear la respuesta para obtener la lista de usuarios y sus puntajes
+            //AuthResponse[] users = JsonUtility.FromJson<AuthResponse[]>(www.downloadHandler.text);
+            //Debo hacer un ciclo aquí pa tomar a los usuarios con más puntos más el usuario recién agregado
+
+
+
+
+            //scoreTable.Q<Label>("User1NameText").text = response.usuario.username;
+            //scoreTable.Q<Label>("User1ScoreText").text = response.usuario.data.score.ToString();
+        }
+        else
+        {
+            Debug.LogError("Score table fetch failed: " + www.error);
+        }  
     }
+
+    ///////////////////////////////////////////////////////Métodos para mostrar los mejores puntajes////////////////////////////////////////////////////////
+
+    private IEnumerator ShowTopScores()
+    {
+        // Implementar la lógica para mostrar los mejores puntajes
+
+        string url = apiUrl + "/api/usuarios/" + Username;
+        UnityWebRequest www = UnityWebRequest.Get(url);
+        www.SetRequestHeader("x-token", Token);
+
+        yield return www.SendWebRequest();
+        if (www.result == UnityWebRequest.Result.Success) 
+        {
+            
+        }
+        else
+        {
+            Debug.LogError("Score table fetch failed: " + www.error);
+        }
+    }
+
 }
 class AuthData
 {
