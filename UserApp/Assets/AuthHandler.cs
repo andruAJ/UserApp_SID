@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Data.SqlTypes;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -29,6 +30,10 @@ public class AuthHandler : MonoBehaviour
     private TextField signupPasswordField;
     private Button iniciarSesion;               //este es el botón para cambiar de carta
 
+    private VisualElement scoreCard; 
+    private TextField puntajeField;
+    private Button asignarButton;
+
     private User[] usuariosTop = new User[5] {
     new User { username = "", data = new UserData { score = int.MinValue } },
     new User { username = "", data = new UserData { score = int.MinValue } },
@@ -52,12 +57,17 @@ public class AuthHandler : MonoBehaviour
         signupPasswordField = signupCard.Q<TextField>("Password_Register_TextField");
         registrarse = loginCard.Q<Button>("Registrarse_Button");
         iniciarSesion = signupCard.Q<Button>("TienesCuenta_Button");
+        scoreCard = uiDocument.rootVisualElement.Q<VisualElement>("PonerPuntaje_Card");
+        puntajeField = scoreCard.Q<TextField>("Puntaje_TextField");
+        asignarButton = scoreCard.Q<Button>("Asignar_Button");
+
 
         Token = PlayerPrefs.GetString("token", "");
         Username = PlayerPrefs.GetString("username", "");
 
         loginButton.RegisterCallback<ClickEvent>(ev => Login());
         signupButton.RegisterCallback<ClickEvent>(ev => SignIn());
+        asignarButton.RegisterCallback<ClickEvent>(ev => UpdateScore());
         registrarse.RegisterCallback<ClickEvent>(ev => { loginCard.style.display = DisplayStyle.None; signupCard.style.display = DisplayStyle.Flex; });
         iniciarSesion.RegisterCallback<ClickEvent>(ev => { signupCard.style.display = DisplayStyle.None; loginCard.style.display = DisplayStyle.Flex; });
 
@@ -146,7 +156,7 @@ public class AuthHandler : MonoBehaviour
             PlayerPrefs.SetString("username", Username);
             Debug.Log("Token and username saved to PlayerPrefs for " + Username);
 
-            StartCoroutine(SetUIForUserLogged());
+            ShowScoreCard();
         }
         else
         {
@@ -171,8 +181,6 @@ public class AuthHandler : MonoBehaviour
             Debug.Log("Login (score) successful");
             AuthResponse response = JsonUtility.FromJson<AuthResponse>(www.downloadHandler.text);
 
-            //StartCoroutine(SetUIForUserLogged());
-
             Debug.Log("Username: " + response.usuario.username);        
             Debug.Log("Score: " + response.usuario.data.score);     
         }
@@ -183,10 +191,61 @@ public class AuthHandler : MonoBehaviour
     }
 
     ///////////////////////////////////////////////////////Métodos para acttualizar la data del score////////////////////////////////////////////////////////
-
-    private IEnumerator UpdateData(int newScore)
+    public void ShowScoreCard()
     {
-        return null;
+        if (loginCard != null) { loginCard.style.display = DisplayStyle.None; scoreCard.style.display = DisplayStyle.Flex; }
+        else { Debug.LogError("Login card or score table not found!"); }
+    }
+    public void UpdateScore()
+    {
+        if (uiDocument)
+        {
+            string puntajeText = puntajeField.text;
+            if (int.TryParse(puntajeText, out int puntaje))
+            {
+                Debug.Log("Updating score to: " + puntaje);
+                StartCoroutine(UpdateData(puntaje));
+            }
+            else
+            {
+                Debug.LogError("Invalid score input. Please enter a valid integer.");
+            }
+        }
+        else { Debug.LogError("UIDocument not found!"); }
+    }
+    private IEnumerator UpdateData(int puntaje)
+    {
+        User usuarioActual = new User
+        {
+            username = Username,
+            data = new UserData { score = puntaje }
+        };
+
+        string jsonData = JsonUtility.ToJson(usuarioActual);
+
+        string url = apiUrl + "/api/usuarios";
+
+        // PATCH
+        UnityWebRequest www = new UnityWebRequest(url, "PATCH");
+        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonData);
+        www.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        www.downloadHandler = new DownloadHandlerBuffer();
+        www.SetRequestHeader("Content-Type", "application/json");
+        www.SetRequestHeader("x-token", Token);
+
+        yield return www.SendWebRequest();
+
+        if (www.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("Score actualizado correctamente para " + Username);
+        }
+        else
+        {
+            Debug.LogError("Error al actualizar el score: " + www.error);
+            Debug.Log("Respuesta del servidor: " + www.downloadHandler.text);
+        }
+
+        StartCoroutine(SetUIForUserLogged());
     }
 
 
@@ -194,8 +253,8 @@ public class AuthHandler : MonoBehaviour
 
     private IEnumerator SetUIForUserLogged()
     {
-        if (loginCard != null) { loginCard.style.display = DisplayStyle.None; scoreTable.style.display = DisplayStyle.Flex; }
-        else { Debug.LogError("Login card or score table not found!"); yield break; }
+        if (scoreCard != null) { scoreCard.style.display = DisplayStyle.None; scoreTable.style.display = DisplayStyle.Flex; }
+        else { Debug.LogError("Score card or score table not found!"); yield break; }
         StartCoroutine(ShowTopScores());
         yield return StartCoroutine(ShowTopScores());
 
@@ -214,7 +273,7 @@ public class AuthHandler : MonoBehaviour
 
     private IEnumerator ShowTopScores()
     {
-        string url = apiUrl + "/api/usuarios?limit=100";
+        string url = apiUrl + "/api/usuarios?limit=100";  //Usualmente no van a haber 100 usuarios, pero estar pendiente por si algún día el profe lo llena (no creo)
         UnityWebRequest www = UnityWebRequest.Get(url);
         www.SetRequestHeader("x-token", Token);
         yield return www.SendWebRequest();
