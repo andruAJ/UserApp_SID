@@ -194,7 +194,9 @@ public class AuthHandler : MonoBehaviour
 
     private IEnumerator SetUIForUserLogged()
     {
-        if (loginCard != null) { loginCard.style.display = DisplayStyle.None; scoreTable.style.display = DisplayStyle.Flex; }
+        if (loginCard != null) { loginCard.style.display = DisplayStyle.None; scoreTable.style.display = DisplayStyle.Flex; Debug.Log("Hola, ya debería haberse prendido la tabla"); }
+        else { Debug.LogError("Login card or score table not found!"); }
+        StartCoroutine(ShowTopScores());
 
         string url = apiUrl + "/api/usuarios/";            //hay que agregar aquí el endpoint para obtener la tabla de puntuaciones (los mejores puntajes)
         UnityWebRequest www = UnityWebRequest.Get(url);
@@ -204,15 +206,17 @@ public class AuthHandler : MonoBehaviour
         if (www.result == UnityWebRequest.Result.Success)
         {
             Debug.Log("Score table fetch successful");
-            //Aquí debería parsear la respuesta para obtener la lista de usuarios y sus puntajes
-            //AuthResponse[] users = JsonUtility.FromJson<AuthResponse[]>(www.downloadHandler.text);
-            //Debo hacer un ciclo aquí pa tomar a los usuarios con más puntos más el usuario recién agregado
+            foreach (var user in usuariosTop)
+            {
+                Debug.Log($"Username: {user.username}, Score: {user.data.score}");
+                scoreTable.Q<Label>("User1NameText").text = user.username;
+                scoreTable.Q<Label>("User1ScoreText").text = user.data.score.ToString();
+            }
 
 
 
 
-            //scoreTable.Q<Label>("User1NameText").text = response.usuario.username;
-            //scoreTable.Q<Label>("User1ScoreText").text = response.usuario.data.score.ToString();
+            
         }
         else
         {

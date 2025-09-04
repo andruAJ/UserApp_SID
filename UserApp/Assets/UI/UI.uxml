@@ -16,7 +16,7 @@
                 <ui:Button text="¿No tienes cuenta?     Registrate" name="Registrarse_Button" style="background-color: rgba(188, 188, 188, 0); border-left-color: rgba(149, 149, 149, 0); border-right-color: rgba(149, 149, 149, 0); border-top-color: rgba(149, 149, 149, 0); border-bottom-color: rgba(149, 149, 149, 0);" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="ScoreTable" style="flex-grow: 0; width: 70%; height: 70%; align-self: center; white-space: normal; flex-direction: row; display: none; border-top-width: 7px; border-right-width: 7px; border-bottom-width: 7px; border-left-width: 7px; border-left-color: rgba(32, 32, 32, 0.81); border-right-color: rgba(32, 32, 32, 0.81); border-top-color: rgba(32, 32, 32, 0.81); border-bottom-color: rgba(32, 32, 32, 0.81); border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px;">
+        <ui:VisualElement name="ScoreTable" style="flex-grow: 0; width: 70%; height: 70%; align-self: center; white-space: normal; flex-direction: row; display: flex; border-top-width: 7px; border-right-width: 7px; border-bottom-width: 7px; border-left-width: 7px; border-left-color: rgba(32, 32, 32, 0.81); border-right-color: rgba(32, 32, 32, 0.81); border-top-color: rgba(32, 32, 32, 0.81); border-bottom-color: rgba(32, 32, 32, 0.81); border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px;">
             <ui:VisualElement name="UserRow" class="Rows">
                 <ui:VisualElement name="UserHeader" class="RowCells RowHeader" style="flex-grow: 1;">
                     <ui:Label text="User" name="UserHeaderText" />
@@ -26,6 +26,18 @@
                 </ui:VisualElement>
                 <ui:VisualElement name="User2Name" class="RowCells" style="flex-grow: 1;">
                     <ui:Label text="Label" name="User2NameText" />
+                </ui:VisualElement>
+                <ui:VisualElement name="User3Name" class="RowCells" style="flex-grow: 1;">
+                    <ui:Label text="Label" name="User3NameText" />
+                </ui:VisualElement>
+                <ui:VisualElement name="User4Name" class="RowCells" style="flex-grow: 1;">
+                    <ui:Label text="Label" name="User4NameText" />
+                </ui:VisualElement>
+                <ui:VisualElement name="User5Name" class="RowCells" style="flex-grow: 1;">
+                    <ui:Label text="Label" name="User5NameText" />
+                </ui:VisualElement>
+                <ui:VisualElement name="CurrentUserName" class="RowCells" style="flex-grow: 1;">
+                    <ui:Label text="Label" name="CurrentUserNameText" />
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="ScoreRow" class="Rows">
@@ -38,9 +50,21 @@
                 <ui:VisualElement name="User2Score" class="RowCells" style="flex-grow: 1;">
                     <ui:Label text="Label" name="User2ScoreText" />
                 </ui:VisualElement>
+                <ui:VisualElement name="User3Score" class="RowCells" style="flex-grow: 1;">
+                    <ui:Label text="Label" name="User3ScoreText" />
+                </ui:VisualElement>
+                <ui:VisualElement name="User4Score" class="RowCells" style="flex-grow: 1;">
+                    <ui:Label text="Label" name="User4ScoreText" />
+                </ui:VisualElement>
+                <ui:VisualElement name="User5Score" class="RowCells" style="flex-grow: 1;">
+                    <ui:Label text="Label" name="User5ScoreText" />
+                </ui:VisualElement>
+                <ui:VisualElement name="CurrentUserScore" class="RowCells" style="flex-grow: 1;">
+                    <ui:Label text="Label" name="CurrentUserScoreText" />
+                </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="SignUp_Card" style="flex-grow: 0; width: 30%; height: 70%; left: 3.5%; align-self: center; justify-content: center; align-items: center; align-content: center; background-color: rgb(226, 226, 226); border-top-width: 7px; border-right-width: 7px; border-bottom-width: 7px; border-left-width: 7px; border-top-left-radius: 14px; border-top-right-radius: 14px; border-bottom-right-radius: 14px; border-bottom-left-radius: 14px; display: flex; visibility: visible; transition-timing-function: ease;">
+        <ui:VisualElement name="SignUp_Card" style="flex-grow: 0; width: 30%; height: 70%; left: 3.5%; align-self: center; justify-content: center; align-items: center; align-content: center; background-color: rgb(226, 226, 226); border-top-width: 7px; border-right-width: 7px; border-bottom-width: 7px; border-left-width: 7px; border-top-left-radius: 14px; border-top-right-radius: 14px; border-bottom-right-radius: 14px; border-bottom-left-radius: 14px; display: none; visibility: visible; transition-timing-function: ease;">
             <ui:Label text="Sign Up" name="SignUp_Title" style="width: auto; height: 10%; justify-content: center; align-self: center; align-items: center; align-content: center; -unity-text-align: middle-center; font-size: 35%; color: rgb(132, 82, 161); -unity-font-style: bold;" />
             <ui:VisualElement name="Username_Register" class="Index">
                 <ui:Label text="Username or email" name="Username_Tag" />
