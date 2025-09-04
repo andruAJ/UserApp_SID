@@ -146,7 +146,7 @@ public class AuthHandler : MonoBehaviour
             PlayerPrefs.SetString("username", Username);
             Debug.Log("Token and username saved to PlayerPrefs for " + Username);
 
-            SetUIForUserLogged();
+            StartCoroutine(SetUIForUserLogged());
         }
         else
         {
@@ -171,7 +171,7 @@ public class AuthHandler : MonoBehaviour
             Debug.Log("Login (score) successful");
             AuthResponse response = JsonUtility.FromJson<AuthResponse>(www.downloadHandler.text);
 
-            SetUIForUserLogged();
+            //StartCoroutine(SetUIForUserLogged());
 
             Debug.Log("Username: " + response.usuario.username);        
             Debug.Log("Score: " + response.usuario.data.score);     
@@ -194,62 +194,63 @@ public class AuthHandler : MonoBehaviour
 
     private IEnumerator SetUIForUserLogged()
     {
-        if (loginCard != null) { loginCard.style.display = DisplayStyle.None; scoreTable.style.display = DisplayStyle.Flex; Debug.Log("Hola, ya debería haberse prendido la tabla"); }
-        else { Debug.LogError("Login card or score table not found!"); }
+        if (loginCard != null) { loginCard.style.display = DisplayStyle.None; scoreTable.style.display = DisplayStyle.Flex; }
+        else { Debug.LogError("Login card or score table not found!"); yield break; }
         StartCoroutine(ShowTopScores());
+        yield return StartCoroutine(ShowTopScores());
 
-        string url = apiUrl + "/api/usuarios/";            //hay que agregar aquí el endpoint para obtener la tabla de puntuaciones (los mejores puntajes)
-        UnityWebRequest www = UnityWebRequest.Get(url);
-        www.SetRequestHeader("x-token", Token);
-        yield return www.SendWebRequest();
-
-        if (www.result == UnityWebRequest.Result.Success)
-        {
-            Debug.Log("Score table fetch successful");
+        Debug.Log("Score table fetch successful");
+            int i = 1;
             foreach (var user in usuariosTop)
             {
                 Debug.Log($"Username: {user.username}, Score: {user.data.score}");
-                scoreTable.Q<Label>("User1NameText").text = user.username;
-                scoreTable.Q<Label>("User1ScoreText").text = user.data.score.ToString();
-            }
-
-
-
-
-            
-        }
-        else
-        {
-            Debug.LogError("Score table fetch failed: " + www.error);
-        }  
+                scoreTable.Q<Label>("User"+i+"NameText").text = user.username;
+                scoreTable.Q<Label>("User"+i+"ScoreText").text = user.data.score.ToString();
+                i++;
+            } 
     }
 
     ///////////////////////////////////////////////////////Métodos para mostrar los mejores puntajes////////////////////////////////////////////////////////
 
     private IEnumerator ShowTopScores()
     {
-        // Implementar la lógica para mostrar los mejores puntajes
-
-        string url = apiUrl + "/api/usuarios" + "?limit=100";
+        string url = apiUrl + "/api/usuarios?limit=100";
         UnityWebRequest www = UnityWebRequest.Get(url);
         www.SetRequestHeader("x-token", Token);
         yield return www.SendWebRequest();
-        if (www.result == UnityWebRequest.Result.Success) 
-        {
-            AuthResponse[] users = JsonUtility.FromJson<AuthResponse[]>(www.downloadHandler.text);
 
-            var topUsers = users
-            .Select(u => u.usuario)
-            .Where(u => u.data != null)
-            .OrderByDescending(u => u.data.score)
-            .Take(5)
-            .ToArray();
+        if (www.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("JSON recibido: " + www.downloadHandler.text);
+
+            UsuariosWrapper wrapper = null;
+            try
+            {
+                wrapper = JsonUtility.FromJson<UsuariosWrapper>(www.downloadHandler.text);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("me equivocqué deserializando: " + ex.Message);
+            }
+
+            if (wrapper == null || wrapper.usuarios == null)
+            {
+                Debug.LogError("No se pudo deserializar el array");
+                yield break;
+            }
+
+            Debug.Log("Cantidad total de usuarios en el servidor: " + wrapper.usuarios.Length);
+            var topUsers = wrapper.usuarios
+                .Where(u => u.data != null)
+                .OrderByDescending(u => u.data.score)
+                .Take(5)
+                .ToArray();
 
             usuariosTop = topUsers;
 
             for (int i = 0; i < usuariosTop.Length; i++)
             {
-                Debug.Log($"Top {i + 1}: {usuariosTop[i].username} - {usuariosTop[i].data.score}");
+                Debug.Log($"Top {i + 1}: {usuariosTop[i].username} - {usuariosTop[i].data?.score}");
             }
         }
         else
@@ -282,4 +283,10 @@ class User
 class UserData
 {
     public int score;
+}
+
+[Serializable]
+class UsuariosWrapper
+{
+    public User[] usuarios;
 }
