@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -28,6 +29,13 @@ public class AuthHandler : MonoBehaviour
     private TextField signupPasswordField;
     private Button iniciarSesion;               //este es el botón para cambiar de carta
 
+    private User[] usuariosTop = new User[5] {
+    new User { username = "", data = new UserData { score = int.MinValue } },
+    new User { username = "", data = new UserData { score = int.MinValue } },
+    new User { username = "", data = new UserData { score = int.MinValue } },
+    new User { username = "", data = new UserData { score = int.MinValue } },
+    new User { username = "", data = new UserData { score = int.MinValue } }
+};
 
 
     void Start()
@@ -40,8 +48,8 @@ public class AuthHandler : MonoBehaviour
         scoreTable = uiDocument.rootVisualElement.Q<VisualElement>("ScoreTable");
         signupCard = uiDocument.rootVisualElement.Q<VisualElement>("SignUp_Card");
         signupButton = signupCard.Q<Button>("SignUp_Button");
-        signupUsernameField = signupCard.Q<TextField>("Username_Register");
-        signupPasswordField = signupCard.Q<TextField>("Password_Register");
+        signupUsernameField = signupCard.Q<TextField>("Username_Register_TextField");
+        signupPasswordField = signupCard.Q<TextField>("Password_Register_TextField");
         registrarse = loginCard.Q<Button>("Registrarse_Button");
         iniciarSesion = signupCard.Q<Button>("TienesCuenta_Button");
 
@@ -218,14 +226,27 @@ public class AuthHandler : MonoBehaviour
     {
         // Implementar la lógica para mostrar los mejores puntajes
 
-        string url = apiUrl + "/api/usuarios/" + Username;
+        string url = apiUrl + "/api/usuarios" + "?limit=100";
         UnityWebRequest www = UnityWebRequest.Get(url);
         www.SetRequestHeader("x-token", Token);
-
         yield return www.SendWebRequest();
         if (www.result == UnityWebRequest.Result.Success) 
         {
-            
+            AuthResponse[] users = JsonUtility.FromJson<AuthResponse[]>(www.downloadHandler.text);
+
+            var topUsers = users
+            .Select(u => u.usuario)
+            .Where(u => u.data != null)
+            .OrderByDescending(u => u.data.score)
+            .Take(5)
+            .ToArray();
+
+            usuariosTop = topUsers;
+
+            for (int i = 0; i < usuariosTop.Length; i++)
+            {
+                Debug.Log($"Top {i + 1}: {usuariosTop[i].username} - {usuariosTop[i].data.score}");
+            }
         }
         else
         {
