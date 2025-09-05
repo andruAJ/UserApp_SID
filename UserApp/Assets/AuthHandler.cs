@@ -259,14 +259,16 @@ public class AuthHandler : MonoBehaviour
         yield return StartCoroutine(ShowTopScores());
 
         Debug.Log("Score table fetch successful");
-            int i = 1;
-            foreach (var user in usuariosTop)
-            {
-                Debug.Log($"Username: {user.username}, Score: {user.data.score}");
-                scoreTable.Q<Label>("User"+i+"NameText").text = user.username;
-                scoreTable.Q<Label>("User"+i+"ScoreText").text = user.data.score.ToString();
-                i++;
-            } 
+        int i = 1;
+        foreach (var user in usuariosTop)
+        {
+            Debug.Log($"Username: {user.username}, Score: {user.data.score}");
+            scoreTable.Q<Label>("User"+i+"NameText").text = user.username;
+            scoreTable.Q<Label>("User"+i+"ScoreText").text = user.data.score.ToString();
+            i++;
+        } 
+        scoreTable.Q<Label>("CurrentUserNameText").text = Username;
+        scoreTable.Q<Label>("CurrentUserScoreText").text = puntajeField.text;
     }
 
     ///////////////////////////////////////////////////////Métodos para mostrar los mejores puntajes////////////////////////////////////////////////////////
